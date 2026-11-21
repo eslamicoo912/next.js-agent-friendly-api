@@ -4,6 +4,23 @@ import { Feedback } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
   const feedback = await getAllFeedback()
+
+  const { searchParams } = request.nextUrl
+
+  const courseSlug = searchParams.get("courseSlug")
+  const lessonSlug = searchParams.get("lessonSlug")
+  const minRating = searchParams.get("minRating")
+
+  if (courseSlug) return NextResponse.json(feedback.filter((f) => f.courseSlug === courseSlug))
+  if (lessonSlug) return NextResponse.json(feedback.filter((f) => f.lessonSlug === lessonSlug))
+  if (minRating) {
+    let min = feedback[0].rating;
+    feedback.forEach((f, index) => {
+      if (f.rating < min) min = f.rating
+    })
+    return NextResponse.json(feedback.find(f => f.rating === min))
+  }
+
   return NextResponse.json(feedback);
 }
 
