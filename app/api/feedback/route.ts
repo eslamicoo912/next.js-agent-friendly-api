@@ -1,18 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// TODO: Import data utilities from @/lib/data
+import { getAllFeedback, addFeedback } from "@/lib/data";
+import { Feedback } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
-  // TODO: Get all feedback
-  // TODO: Support optional query params: courseSlug, lessonSlug, minRating
-  // TODO: Return filtered results as JSON
-  return NextResponse.json([]);
+  const feedback = await getAllFeedback()
+  return NextResponse.json(feedback);
 }
 
 export async function POST(request: NextRequest) {
-  // TODO: Parse the request body
-  // TODO: Validate required fields: courseSlug, lessonSlug, rating, comment, author
-  // TODO: Validate rating is a number between 1 and 5
-  // TODO: Add the feedback and return it with status 201
-  return NextResponse.json({ error: "Not implemented" }, { status: 501 });
+  let body: Feedback;
+
+  try {
+    body = await request.json()
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Request body must be valid JSON" },
+      { status: 400 }
+    )
+  }
+
+  const { author, comment, courseSlug, lessonSlug, rating } = body
+
+  if (!courseSlug || !lessonSlug || rating == null || !comment || !author)
+    return NextResponse.json(
+      { error: "Missing required fields" },
+      { status: 400 }
+    )
+
+  if (!Number.isInteger(rating || rating < 1 || rating > 5))
+    return NextResponse.json({ error: "Rating must be an integer between 1 and 5" }, { status: 400 })
+
+  const entry = await addFeedback(body)
+
+  return NextResponse.json(entry, { status: 201 });
 }

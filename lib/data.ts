@@ -7,7 +7,8 @@ const DATA_PATH = path.join(process.cwd(), "data", "feedback.json");
 // TODO: Implement getAllFeedback
 // Read the JSON file at DATA_PATH and return the parsed array.
 export async function getAllFeedback(): Promise<Feedback[]> {
-  return [];
+  const raw = await fs.readFile(DATA_PATH, 'utf-8')
+  return JSON.parse(raw);
 }
 
 // TODO: Implement getFeedbackById
@@ -15,7 +16,9 @@ export async function getAllFeedback(): Promise<Feedback[]> {
 export async function getFeedbackById(
   id: string
 ): Promise<Feedback | undefined> {
-  return undefined;
+  const allData = await getAllFeedback();
+  const feedback = allData.find((f) => f.id === id)
+  return feedback
 }
 
 // TODO: Implement addFeedback
@@ -23,5 +26,13 @@ export async function getFeedbackById(
 export async function addFeedback(
   entry: Omit<Feedback, "id" | "createdAt">
 ): Promise<Feedback> {
-  throw new Error("Not implemented");
+  const allData = await getAllFeedback();
+  const newEntry = {
+    ...entry,
+    id: `fb-${String(allData.length + 1).padStart(3, "0")}`,
+    createdAt: new Date().toISOString()
+  }
+  allData.push(newEntry);
+  fs.writeFile(DATA_PATH, JSON.stringify(allData, null, 2))
+  return newEntry
 }
